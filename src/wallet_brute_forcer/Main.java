@@ -136,7 +136,7 @@ public class Main {
 		}
 
 		//much larger than 150 addresses at a time exceeds HTTP URL length limits
-		List<List<Address>> groups = Lists.partition(toCheck, 150);
+		List<List<Address>> groups = Lists.partition(toCheck, 90);
 
 		List<String> allValids = new ArrayList<String>();
 		int numScanned = 0;
@@ -144,7 +144,7 @@ public class Main {
 			List<String> validAddresses = checkForPositiveBalances(group);
 			numScanned += group.size();
 			System.out.println("Scanned " + numScanned + "/" + toCheck.size() + " addresses using web API");
-			Thread.sleep(100);
+			Thread.sleep(3000);
 			allValids.addAll(validAddresses);
 		}
 
@@ -250,12 +250,13 @@ public class Main {
 		StringBuilder urlBuilder = new StringBuilder("https://blockchain.info/multiaddr?active=");
 
 		for (Address addr : group) {
+			System.out.println("checking address: " + addr.toBase58() + " for positive balance...");
 			urlBuilder.append(addr.toBase58());
-			urlBuilder.append("|");
+			urlBuilder.append("%7C");
 		}
 
 		urlBuilder.deleteCharAt(urlBuilder.length() - 1);
-		urlBuilder.append("&limit=1");
+		urlBuilder.append("&limit=0");
 
 		JSONObject results = readJsonFromUrl(urlBuilder.toString());
 
