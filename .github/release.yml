@@ -39,5 +39,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./target/wallet_brute_forcer-0.0.1-SNAPSHOT.jar
-          asset_name: brute-forcer-${{ steps.get_version.outputs.version }}.jar
+          asset_name: brute-forcer-test.jar
           asset_content_type: application/java-archive
