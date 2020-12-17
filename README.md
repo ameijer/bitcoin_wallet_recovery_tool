@@ -4,7 +4,7 @@
 
 Did this tool help you rescue some bitcoin? Consider helping to support its development and say thanks with some BTC! My address is: *16nn1nbrofnQwsYuEDf78PVwBdHDcXE6H5*:
 
-[Address](address.png)
+![Address](address.png)
 
 ### Introduction
 
