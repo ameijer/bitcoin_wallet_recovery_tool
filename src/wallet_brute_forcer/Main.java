@@ -47,7 +47,8 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 public class Main {
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
+	
+	
 	/**
 	 * Helper method to convert bytes to hex representation
 	 * 
@@ -63,7 +64,58 @@ public class Main {
 		}
 		return new String(hexChars);
 	}
+	
+	private static class Config {
+		private File file;
+		private int requestDelaySeconds = -1;
+		
+		
+		public Config(String[] args) throws IOException {
+			super();
+			
+			for(int i = 0; i < args.length; i++) {
+				switch (args[i]) {
+					case "--wallet-file":
+				
+							file = new File(args[i+1]);
+							if(file == null || !file.exists()) {
+								throw new IOException("bad file passed in wallet file arg: " + args[i]);
+							}
+							i++;
+					break;
+					case "--request-delay":
+						this.requestDelaySeconds = Integer.parseInt(args[i+1]);
+						i++;
+					break;
+					case "help":
+					default:
+						System.out.println("available arguments:");
+						System.out.println("--wallet-file <path to wallet file>");
+						System.out.println("--request-delay <delay between API requests in seconds>");
+						//print help and exit
+						throw new IOException("unknown arg: " + args[i]);
+				}
+			}
+		}
 
+		public File getFile() {
+			return file;
+		}
+		
+		public int getRequestDelaySeconds() {
+			return requestDelaySeconds;
+		}
+		
+		public void setFile(File toSet) {
+			file = toSet;
+		}
+		
+		public void setRequestDelaySeconds(int toSet) {
+			requestDelaySeconds = toSet;
+		}
+		
+	}
+	
 	/**
 	 * Main method. accepts wallet file name in args. 
 	 * 
@@ -76,33 +128,45 @@ public class Main {
 	public static void main(String[] args)
 			throws IOException, BlockStoreException, InterruptedException, WriterException {
 
-		System.out.println("Welcome to the wallet brute forcer.\n Crafted with <3 in Arlington, VA.");
-
-		File inputDat = null;
-		boolean exists = false;
-		if (args.length == 1) {
-			inputDat = new File(args[0]);
-			exists = inputDat.exists();
-		}
-
+		System.out.println("Welcome to the wallet brute forcer...");
+		
+		Config config = new Config(args);
+		Scanner scan = new Scanner(System.in);
+		
 		//read wallet file
-		while (!exists) {
+		while (config.getFile() == null) {
 			System.out.print("Enter the path to your wallet.dat file: ");
 
-			Scanner scan = new Scanner(System.in);
-
 			String path = scan.nextLine();
-			scan.close();
-			inputDat = new File(path);
+			
+			File inputDat = new File(path);
 
-			exists = inputDat.exists();
+			boolean exists = inputDat.exists();
 
 			if (!exists) {
 				System.out.println("sorry, invalid file path.");
+				continue;
 			}
+			config.setFile(inputDat);
+			
 		}
+		
+		if (config.getRequestDelaySeconds() < 0) {
+			System.out.print("Enter the delay between API requests (default: 12): ");
+			
+			String delay = scan.nextLine();
+			
+			int parsedDelay = 12;
+			if(delay.length() > 0) {
+				parsedDelay = Integer.parseInt(delay);
+			}
+			
+			config.setRequestDelaySeconds(parsedDelay);
+		}
+		
+		scan.close();
 
-		WalletFile myFile = new WalletFile(inputDat);
+		WalletFile myFile = new WalletFile(config.getFile());
 
 		List<ECKey> keys = new ArrayList<ECKey>();
 
@@ -141,17 +205,26 @@ public class Main {
 		List<String> allValids = new ArrayList<String>();
 		int numScanned = 0;
 		for (List<Address> group : groups) {
-			List<String> validAddresses = checkForPositiveBalances(group);
+			List<String> validAddresses = null;
+			try {
+				validAddresses = checkForPositiveBalances(group);
+			} catch(IOException e) {
+				if(e.getMessage().contains("code: 429")) {
+					System.out.println("Error 429 caught. This could be caused by an exceeded rate limit at the server.");
+					System.out.println("Try increasing the delay between API requests greater than the current value of: " + config.getRequestDelaySeconds() + " seconds.");
+					System.exit(3);
+				} else throw e;
+			}
 			numScanned += group.size();
 			System.out.println("Scanned " + numScanned + "/" + toCheck.size() + " addresses using web API");
-			Thread.sleep(3000);
+			Thread.sleep(config.getRequestDelaySeconds() * 1000);
 			allValids.addAll(validAddresses);
 		}
 
 		List<ECKey> validKeypairs = extractAllValidKeys(allValids, keys);
 
 		//Generate WIF qr codes that can be scanned by wallet software
-		File WIFoutputDir = new File(inputDat.getParentFile(), "WIFs");
+		File WIFoutputDir = new File(config.getFile().getParentFile(), "WIFs");
 		WIFoutputDir.mkdirs();
 
 		Set<File> generated = generateWIFQRs(WIFoutputDir, validKeypairs);
@@ -257,8 +330,10 @@ public class Main {
 
 		urlBuilder.deleteCharAt(urlBuilder.length() - 1);
 		urlBuilder.append("&limit=0");
-
-		JSONObject results = readJsonFromUrl(urlBuilder.toString());
+		JSONObject results = null;
+	
+		results = readJsonFromUrl(urlBuilder.toString());
+		
 
 		JSONArray addrs = results.getJSONArray("addresses");
 

@@ -1,8 +1,10 @@
 # Bitcoin Wallet Brute Force Recovery Tool
 
-### Disclaimer
+## Support Development
 
-**I am not responsible for any consequences from the use/misuse of this software by ANY party, and provide it for reference only. Please backup any wallets you plan to attempt a recovery on, and note that this program will store your private keys in a plaintext image on your computer. See the LICENSE for full disclaimer.**
+Did this tool help you rescue some bitcoin? Consider helping to support its development and say thanks with some BTC! My address is: *16nn1nbrofnQwsYuEDf78PVwBdHDcXE6H5*:
+
+[Address](address.png)
 
 ### Introduction
 
@@ -15,6 +17,10 @@ This software establishes a 256-bit sliding window at the start of the wallet fi
 It then checks the balance at each private key using a web API, 150 key candidates at a time. The vast majority of the candidates will just have been generated from metadata and will have a balance of 0 bitcoin. When the program does find a positive balance, it saves the keypair. 
 
 Finally, any private keys with positive bitcoin balances are exported to WIF, and image files with QR codes are generated. Simply scan these with any of the major mobile wallet programs, and the bitcoin will be immediately spend-able. 
+
+### Disclaimer
+
+**I am not responsible for any consequences from the use/misuse of this software by ANY party, and provide it for reference only. Please backup any wallets you plan to attempt a recovery on, and note that this program will store your private keys in a plaintext image on your computer. See the LICENSE for full disclaimer.**
 
 ### Building 
 
