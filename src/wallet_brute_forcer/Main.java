@@ -325,7 +325,7 @@ public class Main {
 		for (Address addr : group) {
 			System.out.println("checking address: " + addr.toBase58() + " for positive balance...");
 			urlBuilder.append(addr.toBase58());
-			urlBuilder.append("%7C");
+			urlBuilder.append("|");
 		}
 
 		urlBuilder.deleteCharAt(urlBuilder.length() - 1);
