@@ -38,7 +38,7 @@
               </filters>
               <transformers>
                 <transformer>
-                  <mainClass>wallet_brute_forcer.Main</mainClass>
+                  <mainClass>com.ameijer.bruteforce.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>
