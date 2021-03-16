@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/ameijer/bitcoin_wallet_recovery_tool/branch/master/graph/badge.svg?token=JikobBPFh5)](https://codecov.io/gh/ameijer/bitcoin_wallet_recovery_tool)
 # Bitcoin Wallet Brute Force Recovery Tool
 
 ## Support Development
