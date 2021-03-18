@@ -232,13 +232,13 @@ public class Main {
 
 	}
 
-	private static Set<File> generateWIFQRs(File wIFoutputDir, List<ECKey> validKeypairs)
+	protected static Set<File> generateWIFQRs(File WIFoutputDir, List<ECKey> validKeypairs)
 			throws WriterException, IOException {
 
 		Set<File> QRs = new HashSet<File>(); 
 		for (ECKey keypair : validKeypairs) {
 			String addr = keypair.toAddress(MainNetParams.get()).toBase58();
-			File outputFile = new File(wIFoutputDir, addr + ".png");
+			File outputFile = new File(WIFoutputDir, addr + ".png");
 			createQRImage(outputFile, keypair.getPrivateKeyAsWiF(MainNetParams.get()), 512, "png");
 			QRs.add(outputFile); 
 		}
@@ -246,7 +246,7 @@ public class Main {
 		return QRs; 
 	}
 
-	private static void createQRImage(File qrFile, String qrCodeText, int size, String fileType)
+	protected static void createQRImage(File qrFile, String qrCodeText, int size, String fileType)
 			throws WriterException, IOException {
 		// Create the ByteMatrix for the QR-Code that encodes the given String
 		Hashtable hintMap = new Hashtable();
@@ -274,7 +274,7 @@ public class Main {
 		ImageIO.write(image, fileType, qrFile);
 	}
 
-	private static List<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
+	protected static List<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
 		ArrayList<ECKey> valids = new ArrayList<ECKey>();
 		for (String valid : allValids) {
 
@@ -289,7 +289,7 @@ public class Main {
 		return valids;
 	}
 
-	private static String readAll(Reader rd) throws IOException {
+	protected static String readAll(Reader rd) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int cp;
 		while ((cp = rd.read()) != -1) {
@@ -318,7 +318,7 @@ public class Main {
 	 * @throws JSONException
 	 * @throws IOException
 	 */
-	private static List<String> checkForPositiveBalances(List<Address> group) throws JSONException, IOException {
+	protected static List<String> checkForPositiveBalances(List<Address> group) throws JSONException, IOException {
 
 		StringBuilder urlBuilder = new StringBuilder("https://blockchain.info/multiaddr?active=");
 

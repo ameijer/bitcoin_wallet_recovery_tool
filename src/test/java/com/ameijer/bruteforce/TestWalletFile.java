@@ -14,6 +14,7 @@ public class TestWalletFile {
     public static final String TEST_FILE_CONTENTS = UUID.randomUUID().toString() + UUID.randomUUID().toString();
     private WalletFile underTest;
     private Random random = new Random();
+    
     @BeforeEach
     public void setupFile() throws IOException {
     	FileWriter target = new FileWriter(TEST_FILE_PATH);
