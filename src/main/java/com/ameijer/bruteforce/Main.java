@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Collection;
 
 import javax.imageio.ImageIO;
 
@@ -224,7 +225,7 @@ public class Main {
 			allValids.addAll(validAddresses);
 		}
 
-		List<ECKey> validKeypairs = extractAllValidKeys(allValids, keys);
+		List<ECKey> validKeypairs = new ArrayList<ECKey>(extractAllValidKeys(allValids, keys));
 
 		//Generate WIF qr codes that can be scanned by wallet software
 		File WIFoutputDir = new File(config.getFile().getParentFile(), "WIFs");
@@ -277,8 +278,8 @@ public class Main {
 		ImageIO.write(image, fileType, qrFile);
 	}
 
-	protected static List<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
-		ArrayList<ECKey> valids = new ArrayList<ECKey>();
+	protected static Collection<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
+		Collection<ECKey> valids = new HashSet<ECKey>();
 		for (String valid : allValids) {
 
 			for (ECKey keypair : keys) {

@@ -84,7 +84,7 @@ public class TestMain {
         // check known good address (one of satoshi's addresses)
         ArrayList<Address> goodAddress = new ArrayList<Address>();
         goodAddress.add(Address.fromString(MainNetParams.get(), POSITIVE_BTC_ADDRESS));
-        List<String> results = Main.checkForPositiveBalances(goodAddress);
+        Collection<String> results = Main.checkForPositiveBalances(goodAddress);
     	assertEquals(results.size(), 1);
     	assertTrue(results.contains(POSITIVE_BTC_ADDRESS));
     }
@@ -98,6 +98,26 @@ public class TestMain {
         List<String> results = Main.checkForPositiveBalances(goodAddress);
     	assertEquals(results.size(), 1);
     	assertTrue(results.contains(POSITIVE_SEGWIT_ADDRESS));
+    }
+    
+    @Test
+    public void testExtractValidKeys() {
+        ArrayList<String> generated = new ArrayList<String>();
+        ArrayList<ECKey> keysUsed = new ArrayList<ECKey>();
+        int i = 0;
+        for(; i< 10; i++){
+		    ECKey toCheck = new ECKey();
+		    generated.add(LegacyAddress.fromKey(MainNetParams.get(), toCheck).toBase58());
+		    generated.add(SegwitAddress.fromKey(MainNetParams.get(), toCheck).toBech32());
+		    keysUsed.add(toCheck);
+		    
+    	}
+    	
+    	Collection<ECKey> valids = Main.extractAllValidKeys(generated, keysUsed);
+    	
+    	assertEquals(valids.size(), i);
+    	assertTrue(valids.containsAll(keysUsed));
+    	
     }
     
     
