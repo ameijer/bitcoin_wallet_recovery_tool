@@ -22,6 +22,8 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 
 import org.bitcoinj.core.Address;
+import org.bitcoinj.core.LegacyAddress;
+import org.bitcoinj.core.SegwitAddress;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.BlockStoreException;
@@ -194,8 +196,9 @@ public class Main {
 
 		Iterator<ECKey> iter = keys.iterator();
 		while (iter.hasNext()) {
-
-			toCheck.add(iter.next().toAddress(MainNetParams.get()));
+			ECKey key = iter.next();
+			toCheck.add(SegwitAddress.fromKey(MainNetParams.get(), key));
+			toCheck.add(LegacyAddress.fromKey(MainNetParams.get(), key));
 
 		}
 
@@ -237,8 +240,8 @@ public class Main {
 
 		Set<File> QRs = new HashSet<File>(); 
 		for (ECKey keypair : validKeypairs) {
-			String addr = keypair.toAddress(MainNetParams.get()).toBase58();
-			File outputFile = new File(WIFoutputDir, addr + ".png");
+			String hashCode = "valid-address-WIF-" + keypair.hashCode();
+			File outputFile = new File(WIFoutputDir, hashCode + ".png");
 			createQRImage(outputFile, keypair.getPrivateKeyAsWiF(MainNetParams.get()), 512, "png");
 			QRs.add(outputFile); 
 		}
@@ -279,9 +282,12 @@ public class Main {
 		for (String valid : allValids) {
 
 			for (ECKey keypair : keys) {
-				if (keypair.toAddress(MainNetParams.get()).toBase58().equals(valid)) {
+				Address legacyAddr = LegacyAddress.fromKey(MainNetParams.get(), keypair);
+				Address segwitAddr = SegwitAddress.fromKey(MainNetParams.get(), keypair);
+				if (((LegacyAddress)legacyAddr).toBase58().equals(valid) || ((SegwitAddress)segwitAddr).toBech32().equals(valid)) {
 					valids.add(keypair);
 				}
+				
 			}
 
 		}
@@ -323,8 +329,16 @@ public class Main {
 		StringBuilder urlBuilder = new StringBuilder("https://blockchain.info/multiaddr?active=");
 
 		for (Address addr : group) {
-			System.out.println("checking address: " + addr.toBase58() + " for positive balance...");
-			urlBuilder.append(addr.toBase58());
+			String format = null;
+			
+			if(addr instanceof SegwitAddress){
+				format = ((SegwitAddress)addr).toBech32();
+			} else {
+				format = ((LegacyAddress)addr).toBase58();
+			}
+			
+			System.out.println("checking address: " + format + " for positive balance...");
+			urlBuilder.append(format);
 			urlBuilder.append("|");
 		}
 

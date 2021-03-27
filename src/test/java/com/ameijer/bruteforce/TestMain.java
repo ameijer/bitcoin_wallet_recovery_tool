@@ -8,6 +8,9 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.Result;
 import com.google.zxing.MultiFormatReader;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.core.Address;
+import org.bitcoinj.core.LegacyAddress;
+import org.bitcoinj.core.SegwitAddress;
 import java.util.*;
 import java.io.IOException;
 import java.io.File;
@@ -25,6 +28,8 @@ public class TestMain {
     
     public static final String TEST_FILE_BASE_PATH = "/tmp/tests";
     private static ArrayList<ECKey> testKeypairs;
+    private final String POSITIVE_BTC_ADDRESS = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+    private final String POSITIVE_SEGWIT_ADDRESS = "bc1qp762gmkychywl4elnuyuwph68hqw0uc2jkzu3ax48zfjkskslpsq8p66gf";
     
     @BeforeEach
     public void prepKeys(){
@@ -58,6 +63,43 @@ public class TestMain {
     	  assertTrue(expecteds.contains(expected));
     	}
     }
+    
+    @Test
+    public void test0BalanceChecker() throws IOException {
+    	ArrayList<Address> generated = new ArrayList<Address>();
+    	
+    	for(int i = 0; i< 10; i++){
+		    ECKey toCheck = new ECKey();
+		    generated.add(LegacyAddress.fromKey(MainNetParams.get(), toCheck));
+		    generated.add(SegwitAddress.fromKey(MainNetParams.get(), toCheck));
+    	}
+    	// check random addresses, these will be 0
+    	List<String> results = Main.checkForPositiveBalances(generated);
+    	assertEquals(results.size(), 0);
+    }
+    
+    @Test
+    public void testPositiveBalanceCheckerLegacy() throws IOException {
+        
+        // check known good address (one of satoshi's addresses)
+        ArrayList<Address> goodAddress = new ArrayList<Address>();
+        goodAddress.add(Address.fromString(MainNetParams.get(), POSITIVE_BTC_ADDRESS));
+        List<String> results = Main.checkForPositiveBalances(goodAddress);
+    	assertEquals(results.size(), 1);
+    	assertTrue(results.contains(POSITIVE_BTC_ADDRESS));
+    }
+    
+    @Test
+    public void testPositiveBalanceCheckerSegwit() throws IOException {
+        
+        // check known good address (one of satoshi's addresses)
+        ArrayList<Address> goodAddress = new ArrayList<Address>();
+        goodAddress.add(Address.fromString(MainNetParams.get(), POSITIVE_SEGWIT_ADDRESS));
+        List<String> results = Main.checkForPositiveBalances(goodAddress);
+    	assertEquals(results.size(), 1);
+    	assertTrue(results.contains(POSITIVE_SEGWIT_ADDRESS));
+    }
+    
     
     private String readQRCode(File qrCodeFile) {
         String encodedContent = null;
