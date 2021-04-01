@@ -181,7 +181,11 @@ public class Main {
 			int currentPos = myFile.getPosition();
 			int totalPos = myFile.getTotalPos();
 			keyContents = myFile.nextCandidate();
-			System.out.println("read in " + currentPos + "/" + totalPos + " bytes");
+			
+			
+			if ( currentPos % 30000 == 0 ) {
+				System.out.println("read in " + currentPos + "/" + totalPos + " bytes");
+			}
 			try {
 				candidateKey = ECKey.fromPrivate(keyContents);
 				keys.add(candidateKey);
