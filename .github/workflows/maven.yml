@@ -20,7 +20,7 @@ jobs:
       run: mvn -B package --file pom.xml
     - name: Test with Maven
       env: 
-    	  ZERO_BALANCE_WALLET_CONTENTS: ${{ secrets.ZERO_BALANCE_WALLET_CONTENTS }}
+    	ZERO_BALANCE_WALLET_CONTENTS: ${{ secrets.ZERO_BALANCE_WALLET_CONTENTS }}
       run: mvn test
     - uses: codecov/codecov-action@v1
       with:
