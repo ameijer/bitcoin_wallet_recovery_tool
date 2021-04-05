@@ -342,7 +342,7 @@ public class Main {
 				format = ((LegacyAddress)addr).toBase58();
 			}
 			
-			System.out.println("checking address: " + format + " for positive balance...");
+			System.out.println("checking address: " + format);
 			urlBuilder.append(format);
 			urlBuilder.append("|");
 		}
