@@ -1,6 +1,10 @@
 package com.ameijer.bruteforce;
 
 import org.junit.jupiter.api.*;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import java.awt.image.BufferedImage;
 import com.google.zxing.common.HybridBinarizer;
@@ -11,7 +15,9 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.SegwitAddress;
+import com.google.zxing.WriterException;
 import java.util.*;
+import org.bitcoinj.store.BlockStoreException;
 import java.io.IOException;
 import java.io.File;
 import java.math.BigInteger;
@@ -28,8 +34,7 @@ public class TestMain {
     
     public static final String TEST_FILE_BASE_PATH = "/tmp/tests";
     private static ArrayList<ECKey> testKeypairs;
-    private final String POSITIVE_BTC_ADDRESS = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
-    private final String POSITIVE_SEGWIT_ADDRESS = "bc1qp762gmkychywl4elnuyuwph68hqw0uc2jkzu3ax48zfjkskslpsq8p66gf";
+
     
     @BeforeEach
     public void prepKeys(){
@@ -64,41 +69,7 @@ public class TestMain {
     	}
     }
     
-    @Test
-    public void test0BalanceChecker() throws IOException {
-    	ArrayList<Address> generated = new ArrayList<Address>();
-    	
-    	for(int i = 0; i< 10; i++){
-		    ECKey toCheck = new ECKey();
-		    generated.add(LegacyAddress.fromKey(MainNetParams.get(), toCheck));
-		    generated.add(SegwitAddress.fromKey(MainNetParams.get(), toCheck));
-    	}
-    	// check random addresses, these will be 0
-    	List<String> results = Main.checkForPositiveBalances(generated);
-    	assertEquals(results.size(), 0);
-    }
-    
-    @Test
-    public void testPositiveBalanceCheckerLegacy() throws IOException {
-        
-        // check known good address (one of satoshi's addresses)
-        ArrayList<Address> goodAddress = new ArrayList<Address>();
-        goodAddress.add(Address.fromString(MainNetParams.get(), POSITIVE_BTC_ADDRESS));
-        Collection<String> results = Main.checkForPositiveBalances(goodAddress);
-    	assertEquals(results.size(), 1);
-    	assertTrue(results.contains(POSITIVE_BTC_ADDRESS));
-    }
-    
-    @Test
-    public void testPositiveBalanceCheckerSegwit() throws IOException {
-        
-        // check known good address (one of satoshi's addresses)
-        ArrayList<Address> goodAddress = new ArrayList<Address>();
-        goodAddress.add(Address.fromString(MainNetParams.get(), POSITIVE_SEGWIT_ADDRESS));
-        List<String> results = Main.checkForPositiveBalances(goodAddress);
-    	assertEquals(results.size(), 1);
-    	assertTrue(results.contains(POSITIVE_SEGWIT_ADDRESS));
-    }
+
     
     @Test
     public void testExtractValidKeys() {
@@ -117,11 +88,32 @@ public class TestMain {
     	
     	assertEquals(valids.size(), i);
     	assertTrue(valids.containsAll(keysUsed));
-    	
     }
     
+    @Test
+	public void testHelpMessagePrinted() throws IOException, BlockStoreException, InterruptedException, WriterException {
+	   
+		// call main with bad args, confirm help message printed
+		PrintStream oldOut = System.out;
+		ByteArrayOutputStream str = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(str));
+		// invoke main method on wallet
+        String[] args = {"foo"};
+        try {
+            Main.main(args);
+        } catch (IOException e){
+            assertTrue(e.getMessage().contains("unknown arg"));
+        }
+        System.out.flush();
+        String output = str.toString();
+        System.setOut(oldOut);
+        
+        System.out.println("program output: " + output);
+        assertTrue(output.contains("--wallet-file"));
+        assertTrue(output.contains("--request-delay"));
+	}
     
-    private String readQRCode(File qrCodeFile) {
+    protected static String readQRCode(File qrCodeFile) {
         String encodedContent = null;
         try {
             BufferedImage bufferedImage = ImageIO.read(qrCodeFile);
@@ -133,7 +125,7 @@ public class TestMain {
         return encodedContent;
     }
     
-    private String readQRCode(BufferedImage bufferedImage) {
+    private static String readQRCode(BufferedImage bufferedImage) {
 	    String encodedContent = null;
 	    try {
 		    BufferedImageLuminanceSource bufferedImageLuminanceSource = new BufferedImageLuminanceSource(bufferedImage);

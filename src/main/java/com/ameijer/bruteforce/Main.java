@@ -132,7 +132,7 @@ public class Main {
 			throws IOException, BlockStoreException, InterruptedException, WriterException {
 
 		System.out.println("Welcome to the wallet brute forcer...");
-		
+		System.out.flush();
 		Config config = new Config(args);
 		Scanner scan = new Scanner(System.in);
 		
@@ -175,7 +175,7 @@ public class Main {
 
 		byte[] keyContents = new byte[10];
 
-		//scan through the file, byte-by-byte. Toss out invalid elliptic curve keys
+		//scan through the file, byte-by-byte.
 		while (keyContents != null) {
 			ECKey candidateKey = null;
 			int currentPos = myFile.getPosition();
@@ -220,8 +220,9 @@ public class Main {
 				if(e.getMessage().contains("code: 429")) {
 					System.out.println("Error 429 caught. This could be caused by an exceeded rate limit at the server.");
 					System.out.println("Try increasing the delay between API requests greater than the current value of: " + config.getRequestDelaySeconds() + " seconds.");
-					System.exit(3);
-				} else throw e;
+
+				} 
+				throw e;
 			}
 			numScanned += group.size();
 			System.out.println("Scanned " + numScanned + "/" + toCheck.size() + " addresses using web API");
