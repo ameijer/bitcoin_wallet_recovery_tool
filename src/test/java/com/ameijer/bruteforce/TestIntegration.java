@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import org.bitcoinj.core.Address;
 import java.io.PrintStream;
 import org.bitcoinj.store.BlockStoreException;
 import com.google.zxing.WriterException;
@@ -91,7 +92,6 @@ public class TestIntegration {
     	assertTrue(results.contains(POSITIVE_SEGWIT_ADDRESS));
     }
     
-    @Disabled
 	@Test
 	@Order(1)
 	public void testZeroBalWallet() throws IOException, BlockStoreException, InterruptedException, WriterException, Exception {
@@ -150,7 +150,6 @@ public class TestIntegration {
         assertEquals(result.size(), 0);
 	}
 	
-	@Disabled
 	@Test
 	@Order(7)
 	public void testZeroBalWallet429Error() throws IOException, BlockStoreException, InterruptedException, WriterException, Exception {
@@ -188,7 +187,6 @@ public class TestIntegration {
 		
 	}
 	
-	@Disabled
 	@Test
 	@Order(2)
 	public void testPosBalWallet() throws IOException, BlockStoreException, InterruptedException, WriterException, Exception {
