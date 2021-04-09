@@ -44,13 +44,22 @@ public class TestIntegration {
         try {
     	    File target = new File(WALLET_FILE);
     	    target.delete();
-    	    target = new File(WIF_DIR);
-    	    target.delete();
+    	    deleteDir(new File(WIF_DIR));
     	} catch (Exception e) {
     	    if ( e instanceof FileNotFoundException ){
     	        System.out.println(WALLET_FILE + " was not found, skipping deletion.." );
     	    } else throw e;
     	}
+    }
+    
+    private void deleteDir(File dir) {
+        File[] files = dir.listFiles();
+        if(files != null) {
+            for (final File file : files) {
+                deleteDir(file);
+            }
+        }
+        dir.delete();
     }
 
     @Test
