@@ -1,4 +1,4 @@
-package wallet_brute_forcer;
+package com.ameijer.bruteforce;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -18,10 +18,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Collection;
 
 import javax.imageio.ImageIO;
 
 import org.bitcoinj.core.Address;
+import org.bitcoinj.core.LegacyAddress;
+import org.bitcoinj.core.SegwitAddress;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.BlockStoreException;
@@ -129,7 +132,7 @@ public class Main {
 			throws IOException, BlockStoreException, InterruptedException, WriterException {
 
 		System.out.println("Welcome to the wallet brute forcer...");
-		
+		System.out.flush();
 		Config config = new Config(args);
 		Scanner scan = new Scanner(System.in);
 		
@@ -172,13 +175,17 @@ public class Main {
 
 		byte[] keyContents = new byte[10];
 
-		//scan through the file, byte-by-byte. Toss out invalid elliptic curve keys
+		//scan through the file, byte-by-byte.
 		while (keyContents != null) {
 			ECKey candidateKey = null;
 			int currentPos = myFile.getPosition();
 			int totalPos = myFile.getTotalPos();
 			keyContents = myFile.nextCandidate();
-			System.out.println("read in " + currentPos + "/" + totalPos + " bytes");
+			
+			
+			if ( currentPos % 30000 == 0 ) {
+				System.out.println("read in " + currentPos + "/" + totalPos + " bytes");
+			}
 			try {
 				candidateKey = ECKey.fromPrivate(keyContents);
 				keys.add(candidateKey);
@@ -194,8 +201,9 @@ public class Main {
 
 		Iterator<ECKey> iter = keys.iterator();
 		while (iter.hasNext()) {
-
-			toCheck.add(iter.next().toAddress(MainNetParams.get()));
+			ECKey key = iter.next();
+			toCheck.add(SegwitAddress.fromKey(MainNetParams.get(), key));
+			toCheck.add(LegacyAddress.fromKey(MainNetParams.get(), key));
 
 		}
 
@@ -212,8 +220,9 @@ public class Main {
 				if(e.getMessage().contains("code: 429")) {
 					System.out.println("Error 429 caught. This could be caused by an exceeded rate limit at the server.");
 					System.out.println("Try increasing the delay between API requests greater than the current value of: " + config.getRequestDelaySeconds() + " seconds.");
-					System.exit(3);
-				} else throw e;
+
+				} 
+				throw e;
 			}
 			numScanned += group.size();
 			System.out.println("Scanned " + numScanned + "/" + toCheck.size() + " addresses using web API");
@@ -221,7 +230,7 @@ public class Main {
 			allValids.addAll(validAddresses);
 		}
 
-		List<ECKey> validKeypairs = extractAllValidKeys(allValids, keys);
+		List<ECKey> validKeypairs = new ArrayList<ECKey>(extractAllValidKeys(allValids, keys));
 
 		//Generate WIF qr codes that can be scanned by wallet software
 		File WIFoutputDir = new File(config.getFile().getParentFile(), "WIFs");
@@ -232,13 +241,13 @@ public class Main {
 
 	}
 
-	private static Set<File> generateWIFQRs(File wIFoutputDir, List<ECKey> validKeypairs)
+	protected static Set<File> generateWIFQRs(File WIFoutputDir, List<ECKey> validKeypairs)
 			throws WriterException, IOException {
 
 		Set<File> QRs = new HashSet<File>(); 
 		for (ECKey keypair : validKeypairs) {
-			String addr = keypair.toAddress(MainNetParams.get()).toBase58();
-			File outputFile = new File(wIFoutputDir, addr + ".png");
+			String hashCode = "valid-address-WIF-" + keypair.hashCode();
+			File outputFile = new File(WIFoutputDir, hashCode + ".png");
 			createQRImage(outputFile, keypair.getPrivateKeyAsWiF(MainNetParams.get()), 512, "png");
 			QRs.add(outputFile); 
 		}
@@ -246,7 +255,7 @@ public class Main {
 		return QRs; 
 	}
 
-	private static void createQRImage(File qrFile, String qrCodeText, int size, String fileType)
+	protected static void createQRImage(File qrFile, String qrCodeText, int size, String fileType)
 			throws WriterException, IOException {
 		// Create the ByteMatrix for the QR-Code that encodes the given String
 		Hashtable hintMap = new Hashtable();
@@ -274,14 +283,17 @@ public class Main {
 		ImageIO.write(image, fileType, qrFile);
 	}
 
-	private static List<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
-		ArrayList<ECKey> valids = new ArrayList<ECKey>();
+	protected static Collection<ECKey> extractAllValidKeys(List<String> allValids, List<ECKey> keys) {
+		Collection<ECKey> valids = new HashSet<ECKey>();
 		for (String valid : allValids) {
 
 			for (ECKey keypair : keys) {
-				if (keypair.toAddress(MainNetParams.get()).toBase58().equals(valid)) {
+				Address legacyAddr = LegacyAddress.fromKey(MainNetParams.get(), keypair);
+				Address segwitAddr = SegwitAddress.fromKey(MainNetParams.get(), keypair);
+				if (((LegacyAddress)legacyAddr).toBase58().equals(valid) || ((SegwitAddress)segwitAddr).toBech32().equals(valid)) {
 					valids.add(keypair);
 				}
+				
 			}
 
 		}
@@ -289,7 +301,7 @@ public class Main {
 		return valids;
 	}
 
-	private static String readAll(Reader rd) throws IOException {
+	protected static String readAll(Reader rd) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int cp;
 		while ((cp = rd.read()) != -1) {
@@ -318,13 +330,21 @@ public class Main {
 	 * @throws JSONException
 	 * @throws IOException
 	 */
-	private static List<String> checkForPositiveBalances(List<Address> group) throws JSONException, IOException {
+	protected static List<String> checkForPositiveBalances(List<Address> group) throws JSONException, IOException {
 
 		StringBuilder urlBuilder = new StringBuilder("https://blockchain.info/multiaddr?active=");
 
 		for (Address addr : group) {
-			System.out.println("checking address: " + addr.toBase58() + " for positive balance...");
-			urlBuilder.append(addr.toBase58());
+			String format = null;
+			
+			if(addr instanceof SegwitAddress){
+				format = ((SegwitAddress)addr).toBech32();
+			} else {
+				format = ((LegacyAddress)addr).toBase58();
+			}
+			
+			System.out.println("checking address: " + format);
+			urlBuilder.append(format);
 			urlBuilder.append("|");
 		}
 

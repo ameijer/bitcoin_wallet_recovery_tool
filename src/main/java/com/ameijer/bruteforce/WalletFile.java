@@ -1,4 +1,4 @@
-package wallet_brute_forcer;
+package com.ameijer.bruteforce;
 
 import java.io.File;
 import java.io.IOException;

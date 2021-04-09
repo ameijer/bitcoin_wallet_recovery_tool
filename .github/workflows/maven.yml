@@ -3,7 +3,7 @@
 
 name: Java CI with Maven
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -17,4 +17,15 @@ jobs:
       with:
         java-version: 1.11
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package -Dmaven.test.skip=true --file pom.xml
+    - name: Test with Maven
+      env: 
+        ZERO_BALANCE_WALLET_CONTENTS: ${{ secrets.ZERO_BALANCE_WALLET_CONTENTS }}
+        POSITIVE_BALANCE_WALLET_CONTENTS: ${{ secrets.POSITIVE_BALANCE_WALLET_CONTENTS }}
+        POSITIVE_BALANCE_SEGWIT_WALLET_CONTENTS: ${{ secrets.POSITIVE_BALANCE_SEGWIT_WALLET_CONTENTS }}
+      run: mvn test
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true # optional (default = false)
+        verbose: true # optional (default = false)
