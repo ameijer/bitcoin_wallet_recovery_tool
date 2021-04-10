@@ -7,6 +7,7 @@ name: Upload Release Asset
 
 jobs:
   build:
+    if: github.event.base_ref == 'refs/heads/master'
     name: Upload Release Asset
     runs-on: ubuntu-latest
     steps:
@@ -24,28 +25,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WRITE_GITHUB_TOKEN }}
         with:
           files: ./target/wallet_brute_forcer-0.0.1-SNAPSHOT.jar
           fail_on_unmatched_files: true
-        
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/wallet_brute_forcer-0.0.1-SNAPSHOT.jar
-          asset_name: brute-forcer-${{ steps.get_version.outputs.version }}.jar
-          asset_content_type: application/java-archive
