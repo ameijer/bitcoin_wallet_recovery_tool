@@ -1,4 +1,6 @@
 [![codecov](https://codecov.io/gh/ameijer/bitcoin_wallet_recovery_tool/branch/master/graph/badge.svg?token=JikobBPFh5)](https://codecov.io/gh/ameijer/bitcoin_wallet_recovery_tool)
+[![Java CI with Maven](https://github.com/ameijer/bitcoin_wallet_recovery_tool/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/ameijer/bitcoin_wallet_recovery_tool/actions/workflows/maven.yml)
+
 # Bitcoin Wallet Brute Force Recovery Tool
 
 ## Support Development

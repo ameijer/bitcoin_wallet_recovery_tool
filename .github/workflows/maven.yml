@@ -17,7 +17,7 @@ jobs:
       with:
         java-version: 1.11
     - name: Build with Maven
-      run: mvn -B package -Dmaven.test.skip=true --file pom.xml
+      run: mvn -B package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true --file pom.xml
     - name: Test with Maven
       env: 
         ZERO_BALANCE_WALLET_CONTENTS: ${{ secrets.ZERO_BALANCE_WALLET_CONTENTS }}
